@@ -55,9 +55,10 @@ async def metrics(body: dict):
         lat = [r["latency_ms"] for r in rows]
         up = [r.get("uptime_pct", r.get("uptime")) for r in rows]
         result[region] = {
+            "region": region,
             "avg_latency": float(np.mean(lat)),
             "p95_latency": float(np.percentile(lat, 95)),
             "avg_uptime": float(np.mean(up)),
             "breaches": int(sum(1 for x in lat if x > threshold)),
         }
-    return result
+    return {"regions": result}
