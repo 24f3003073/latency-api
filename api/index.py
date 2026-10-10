@@ -3,20 +3,28 @@ from pathlib import Path
 
 import numpy as np
 from fastapi import FastAPI, Request, Response
+from fastapi.responses import JSONResponse
 
 app = FastAPI()
 
+CORS_HEADERS = {
+    "Access-Control-Allow-Origin": "*",
+    "Access-Control-Allow-Methods": "POST, GET, OPTIONS",
+    "Access-Control-Allow-Headers": "Content-Type, Authorization",
+    "Access-Control-Expose-Headers": "Access-Control-Allow-Origin",
+}
 
-# Add CORS headers to EVERY response, even when no Origin is sent
+
 @app.middleware("http")
-async def add_cors_headers(request: Request, call_next):
+async def cors(request: Request, call_next):
     if request.method == "OPTIONS":
-        response = Response(status_code=200)
-    else:
+        return Response(status_code=200, headers=CORS_HEADERS)
+    try:
         response = await call_next(request)
-    response.headers["Access-Control-Allow-Origin"] = "*"
-    response.headers["Access-Control-Allow-Methods"] = "POST, OPTIONS"
-    response.headers["Access-Control-Allow-Headers"] = "*"
+    except Exception as e:
+        response = JSONResponse({"error": str(e)}, status_code=500)
+    for k, v in CORS_HEADERS.items():
+        response.headers[k] = v  # sets (replaces), never duplicates
     return response
 
 
@@ -25,6 +33,12 @@ with open(DATA_FILE) as f:
     RECORDS = json.load(f)
 if isinstance(RECORDS, dict):
     RECORDS = next(v for v in RECORDS.values() if isinstance(v, list))
+
+
+@app.get("/")
+@app.get("/api")
+async def health():
+    return {"status": "ok"}
 
 
 @app.post("/")
