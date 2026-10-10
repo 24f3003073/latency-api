@@ -3,7 +3,7 @@
     {
       "src": "api/index.py",
       "use": "@vercel/python",
-      "config": { "includeFiles": "api/telemetry.json" }
+      "config": { "includeFiles": "api/q-vercel-latency.json" }
     }
   ],
   "routes": [{ "src": "/(.*)", "dest": "api/index.py" }]
